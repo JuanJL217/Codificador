@@ -1,40 +1,46 @@
-; Juan Juarez - 110418
-; Rocio Kraska - 111040
+; Colocar nombre y padron de los integrantes del grupo
+
 global	main
 
 section	.data
-	secuenciaBinariaA	db	0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C 
-						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
-						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
-	largoSecuenciaA		db	0x18 ; 24d
+	secuenciaBinariaA   db 0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C
+					    db 0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51
+					    db 0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18
+	largoSecuenciaA 	db 0x18 ; Largo de la secuencia (24 bytes)
 
-	secuenciaImprmibleB db	"vhyAHZucgTUuznwTDciGQ8m4TuvUIyjU"
-	largoSecuenciaB		db	0x20 ; 32d
-
-	TablaConversion		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	
-; Casos de prueba:
-; SecuenciaBinariaDePrueba db	0x73, 0x38, 0xE7, 0xF7, 0x34, 0x2C, 0x4F, 0x92
-;						   db	0x49, 0x55, 0xE5, 0x9F, 0x8E, 0xF2, 0x75, 0x5A 
-;						   db	0xD3, 0xC5, 0x53, 0x65, 0x68, 0x52, 0x78, 0x3F
-; SecuenciaImprimibleCodificada	db	"czjn9zQsT5JJVeWfjvJ1WtPFU2VoUng/"
-
-; SecuenciaImprimibleDePrueba db "Qy2A2dhEivizBySXb/09gX+tk/2ExnYb"
-; SecuenciaBinariaDecodificada	db	0x43, 0x2D, 0x80, 0xD9, 0xD8, 0x44, 0x8A, 0xF8 
-;								db	0xB3, 0x07, 0x24, 0x97, 0x6F, 0xFD, 0x3D, 0x81 
-;								db	0x7F, 0xAD, 0x93, 0xFD, 0x84, 0xC6, 0x76, 0x1B
- 
-; Un codificador/decodificador online se puede encontrar en https://www.rapidtables.com/web/tools/base64-encode.html
-	
 section	.bss
 	secuenciaImprimibleA	resb	32
-	secuenciaBinariaB		resb	24
-	
+	binariosGuardados 		resb 	192 ; Reservamos espacio para 192 bits (24 bytes * 8 bits por byte)
+
 section	.text
 
 main:
+	mov  	rdi, secuenciaBinariaA  ;Apuntamos al array de hexadecimales
+	mov 	rsi, binariosGuardados  ;Apuntamos al espacio reservado para los binarios convertidos
+	mov 	rax, [largoSecuenciaA]  ;Largo de la secuencia (24 bytes) en rax
+	mov 	rbx, 0                  ;Contador de bytes (índice de secuenciaBinariaA)
 
+obtener_byte:
+	cmp 	rbx, rax               ;Comparamos el contador con el largo de la secuencia
+	jge 	fin_conversion         ;Si rbx >= rax, terminamos la conversión
+	mov 	cl, [rdi+rbx]          ;Cargamos el byte actual de la secuencia en cl
+	mov		dl, 8                  ;Necesitamos 8 iteraciones para cada byte (8 bits)
 
+convertir_bit:
+	test 	cl, 0x80               ;Probamos el primer bit (más significativo)
+	jz 		bit_cero               ;Si es 0, lo almacenamos como bit 0
+	mov 	byte [rsi+rbx], 1      ;Si es 1, lo almacenamos como bit 1
+	jmp 	siguiente_bit
 
+bit_cero:
+	mov 	byte [rsi+rbx], 0       ;Si el bit es 0, lo almacenamos como bit 0
 
-		ret
+siguiente_bit:
+	shl 	cl, 1                   ;Desplazamos cl a la izquierda para probar el siguiente bit
+	inc 	rbx                     ;Incrementamos el contador de bytes
+	dec 	dl                      ;Decrementamos el contador de bits restantes
+	jnz 	convertir_bit           ;Si quedan bits por procesar, repetimos el ciclo
+	jmp 	obtener_byte            ;Repetimos el ciclo para el siguiente byte
+
+fin_conversion:
+	ret
