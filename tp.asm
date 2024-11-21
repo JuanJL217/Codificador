@@ -16,21 +16,21 @@ section	.text
 
 main:
 	mov  	rdi, secuenciaBinariaA  ;Apuntamos al array de hexadecimales
-	mov 	rsi, binariosGuardados  ;Apuntamos al espacio reservado para los binarios convertidos
-	mov 	rax, [largoSecuenciaA]  ;Largo de la secuencia (24 bytes) en rax
-	mov 	rbx, 0                  ;Contador de bytes (índice de secuenciaBinariaA)
+	mov 	rsi, binariosGuardados  ;Apuntamos al espacio reservado para los binarios
+	mov 	rax, [largoSecuenciaA]  ;Cantidad de bytes (hexadeximales)
+	mov 	rbx, 0                  ;Contador de bytes
 
 obtener_byte:
-	cmp 	rbx, rax               ;Comparamos el contador con el largo de la secuencia
-	jge 	fin_conversion         ;Si rbx >= rax, terminamos la conversión
-	mov 	cl, [rdi+rbx]          ;Cargamos el byte actual de la secuencia en cl
-	mov		dl, 8                  ;Necesitamos 8 iteraciones para cada byte (8 bits)
+	cmp 	rbx, rax               ;Comparamos el contador con la cantidad de bytes
+	jge 	fin_conversion         ;Si rbx == rax, es porque iteramos todos los bytes
+	mov 	cl, [rdi+rbx]          ;Cargamos el byte actual de la secuencia en cl (8 bits)
+	mov		dl, 8                  ;Fijo 8 como el número de bits a contar por casa byte
 
 convertir_bit:
-	test 	cl, 0x80               ;Probamos el primer bit (más significativo)
-	jz 		bit_cero               ;Si es 0, lo almacenamos como bit 0
-	mov 	byte [rsi+rbx], 1      ;Si es 1, lo almacenamos como bit 1
-	jmp 	siguiente_bit
+	test 	cl, 0x80               ;Probamos el bit nás significativo en un AND
+	jz 		bit_cero               ;Si es 0
+	mov 	byte [rsi+rbx], 1      ;Si es 1
+	jmp 	siguiente_bit          ;Saltamos al siguiente bite
 
 bit_cero:
 	mov 	byte [rsi+rbx], 0       ;Si el bit es 0, lo almacenamos como bit 0
@@ -39,8 +39,8 @@ siguiente_bit:
 	shl 	cl, 1                   ;Desplazamos cl a la izquierda para probar el siguiente bit
 	inc 	rbx                     ;Incrementamos el contador de bytes
 	dec 	dl                      ;Decrementamos el contador de bits restantes
-	jnz 	convertir_bit           ;Si quedan bits por procesar, repetimos el ciclo
-	jmp 	obtener_byte            ;Repetimos el ciclo para el siguiente byte
+	jnz 	convertir_bit           ;Si la bandera de zero está desactivada, iteramos el siguiente bite
+	jmp 	obtener_byte            ;Cuando la bandera se zero se activó, iteramos el siguiente byte
 
 fin_conversion:
 	ret
