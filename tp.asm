@@ -43,4 +43,6 @@ siguiente_bit:
 	jmp 	obtener_byte            ;Cuando la bandera se zero se activó, iteramos el siguiente byte
 
 fin_conversion:
-	ret
+	mov rax, 60
+	mov rdi, 0
+	syscall

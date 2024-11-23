@@ -1,8 +1,0 @@
-nasm hex_a_bin.asm -f elf64
-gcc hex_a_bin.o -o hex.out -no-pie
-./hex.out
-
-En realidad sería:
-nasm "nombre¨.asm -f elf64
-gcc "nombre".o -o "nuevo nombre".out -no-pie
-./"nuevo nombre".out
