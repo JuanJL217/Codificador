@@ -11,7 +11,8 @@ section .data
     valorHexadecimal db 0xFA, 0x17, 0x6B     ; Valores en hexadecimal
     resultadoBinario db "binario: %s", 10, 0 ; Mensaje para imprimir binario
     cantidadBytes db 0x03                    ; Cantidad de bytes a procesar
-    imprimir db "Grupo: %d", 10, 0           ; Mensaje para imprimir los grupos
+    imprimir db "Grupo: %c", 10, 0           ; Mensaje para imprimir los grupos
+    asciiTable db "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", 0
 section .bss
     cadenaBinario resb 25  ; Espacio para la representación binaria (24 bits + terminador nulo)
     group1 resb 1          ; Espacio para cada grupo de 6 bits
@@ -90,45 +91,52 @@ es_cero:
 
 cuatroOfSix:
     mov     edx, eax   
-    shr     edx, 18                 ; Shifts right 18
-    and     edx, 0x3F               ; Masks with 00111111 to get only 6 bits
-    mov     [group1], dl            ; Guardar el primer grupo en group1. dl es el byte inferior de edx
+    shr     edx, 18                     ; Bits 23-18
+    and     edx, 0x3F                   ; Extraer 6 bits
+    movzx   rsi, dl                     ; Índice en la tabla
+    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
+    mov     [group1], dl                ; Guardar en group1
 
     ; Grupo 2: Bits 17-12
     mov     edx, eax
     shr     edx, 12
     and     edx, 0x3F
+    movzx   rsi, dl                     ; Índice en la tabla
+    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
     mov     [group2], dl
 
     ; Grupo 3: Bits 11-6
     mov     edx, eax
     shr     edx, 6
     and     edx, 0x3F
+    movzx   rsi, dl                     ; Índice en la tabla
+    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
     mov     [group3], dl
 
     ; Grupo 4: Bits 5-0
     mov     edx, eax
-    shr     edx, 0
     and     edx, 0x3F
+    movzx   rsi, dl                     ; Índice en la tabla
+    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
     mov     [group4], dl
 
-    ; Imprimir los grupos
+    ; Imprimir los grupos como caracteres
     lea     rdi, [imprimir]
     
     ; Grupo 1
-    movzx   rdx, byte [group1]   ; Acceder al valor almacenado en group1
-    mPrintf imprimir, rdx        ; Pasar el valor de group1
+    movzx   rdx, byte [group1]          ; Cargar el carácter de group1
+    mPrintf imprimir, rdx               ; Imprimir el carácter
     
     ; Grupo 2
-    movzx   rdx, byte [group2]   ; Acceder al valor almacenado en group2
-    mPrintf imprimir, rdx        ; Pasar el valor de group2
+    movzx   rdx, byte [group2]
+    mPrintf imprimir, rdx
 
     ; Grupo 3
-    movzx   rdx, byte [group3]   ; Acceder al valor almacenado en group3
-    mPrintf imprimir, rdx        ; Pasar el valor de group3
+    movzx   rdx, byte [group3]
+    mPrintf imprimir, rdx
 
     ; Grupo 4
-    movzx   rdx, byte [group4]   ; Acceder al valor almacenado en group4
-    mPrintf imprimir, rdx        ; Pasar el valor de group4
+    movzx   rdx, byte [group4]
+    mPrintf imprimir, rdx
 
     ret
