@@ -1,3 +1,5 @@
+
+
 section .data
     byte1 db 0b11111010        ; 250 en decimal (mismo valor que 0xFA)
     byte2 db 0b00010111        ; 23 en decimal  (mismo valor que 0x17)

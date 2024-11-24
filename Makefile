@@ -5,7 +5,9 @@ GCC = gcc
 GCCFLAGS = -no-pie -z noexecstack -g
 
 # CAMBIAR ESTO POR EL NOMBRE DEL ARCHIVO QUE SE DESEA COMPILAR
-NAME = tp
+# NAME = probando/4of6
+NAME = probando/hex_a_bin_3
+# NAME = tp
 SRC = $(NAME).asm
 OBJ = $(NAME).o
 EXE = $(NAME)
