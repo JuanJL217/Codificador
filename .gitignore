@@ -1,4 +1,4 @@
 *.o
 *.out
-
+.gdb_history
 .vscode/

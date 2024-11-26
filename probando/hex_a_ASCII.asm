@@ -8,17 +8,14 @@ global	main
     extern printf
 
 section .data
-    valorHexadecimal db 0xFA, 0x17, 0x6B     ; Valores en hexadecimal
+    valorHexadecimal db 0xAA, 0xD4, 0x00     ; Valores en hexadecimal
     resultadoBinario db "binario: %s", 10, 0 ; Mensaje para imprimir binario
     cantidadBytes db 0x03                    ; Cantidad de bytes a procesar
     imprimir db "Grupo: %c", 10, 0           ; Mensaje para imprimir los grupos
     asciiTable db "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", 0
 section .bss
     cadenaBinario resb 25  ; Espacio para la representación binaria (24 bits + terminador nulo)
-    group1 resb 1          ; Espacio para cada grupo de 6 bits
-    group2 resb 1
-    group3 resb 1
-    group4 resb 1
+    groupo resb 6          ; Espacio para cada grupo de 6 bits
 section .text
 
 main:
@@ -80,63 +77,37 @@ es_cero:
     loop    convertir_a_24bits           ; Repetir hasta completar los 24 bits
 
     shr     ebx, 1                       ; Corregir el desplazamiento extra del último loop
-    mov     eax, ebx                     ; Pasar el valor de 24 bits a eax para 'cuatroOfSix'
-
     call    cuatroOfSix                  ; Llamar a la función para dividir en grupos
 
     mov     rax, 60                      
     xor     rdi, rdi                     
     syscall
 
-
 cuatroOfSix:
-    mov     edx, eax   
-    shr     edx, 18                     ; Bits 23-18
-    and     edx, 0x3F                   ; Extraer 6 bits
-    movzx   rsi, dl                     ; Índice en la tabla
-    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
-    mov     [group1], dl                ; Guardar en group1
+    mov     ecx, 18                   ; Iniciar en 18 (primer grupo de 6 bits)
 
-    ; Grupo 2: Bits 17-12
-    mov     edx, eax
-    shr     edx, 12
-    and     edx, 0x3F
-    movzx   rsi, dl                     ; Índice en la tabla
-    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
-    mov     [group2], dl
+procesar_grupo:
+    ; Preservar los registros antes de llamar a mPrintf
+    push    rcx                       ; Guardar el valor de ECX
+    push    rdx                       ; Guardar el valor de RDX
 
-    ; Grupo 3: Bits 11-6
-    mov     edx, eax
-    shr     edx, 6
-    and     edx, 0x3F
-    movzx   rsi, dl                     ; Índice en la tabla
-    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
-    mov     [group3], dl
+    mov     edx, ebx                  ; Restaurar los 24 bits originales
+    shr     edx, cl                   ; Desplazar los bits más significativos al final
+    and     edx, 0x3F                 ; Extraer los últimos 6 bits
+    movzx   esi, dl                   ; Guardar los 6 bits en RSI
+    mov     dl, [asciiTable + rsi]    ; Mapear a carácter ASCII Base64
+    mov     [groupo], dl              ; Guardar el carácter en el buffer
 
-    ; Grupo 4: Bits 5-0
-    mov     edx, eax
-    and     edx, 0x3F
-    movzx   rsi, dl                     ; Índice en la tabla
-    mov     dl, [asciiTable + rsi]      ; Obtener carácter correspondiente
-    mov     [group4], dl
+    lea     rdi, [imprimir]           ; Preparar el formato para impresión
+    movzx   rdx, byte [groupo]        ; Pasar el carácter a imprimir
+    mPrintf imprimir, rdx             ; Imprimir el carácter
 
-    ; Imprimir los grupos como caracteres
-    lea     rdi, [imprimir]
-    
-    ; Grupo 1
-    movzx   rdx, byte [group1]          ; Cargar el carácter de group1
-    mPrintf imprimir, rdx               ; Imprimir el carácter
-    
-    ; Grupo 2
-    movzx   rdx, byte [group2]
-    mPrintf imprimir, rdx
+    ; Restaurar los registros después de mPrintf
+    pop     rdx                       ; Restaurar el valor original de RDX
+    pop     rcx                       ; Restaurar el valor original de ECX
 
-    ; Grupo 3
-    movzx   rdx, byte [group3]
-    mPrintf imprimir, rdx
-
-    ; Grupo 4
-    movzx   rdx, byte [group4]
-    mPrintf imprimir, rdx
-
+    sub     ecx, 6                    ; Reducir el contador en 6 bits
+    cmp     ecx, -6                   ; Verificar si hay más grupos
+    jg      procesar_grupo            ; Continuar si hay más grupos
     ret
+

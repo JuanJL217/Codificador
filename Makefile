@@ -6,7 +6,7 @@ GCCFLAGS = -no-pie -z noexecstack -g
 
 # CAMBIAR ESTO POR EL NOMBRE DEL ARCHIVO QUE SE DESEA COMPILAR
 # NAME = probando/4of6
-NAME = probando/hex_a_bin_3
+NAME = probando/hex_a_ASCII
 # NAME = tp
 SRC = $(NAME).asm
 OBJ = $(NAME).o
@@ -16,7 +16,7 @@ all: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJ)
-	$(GCC) $(OBJ) -o $(EXE) $(GCCFLAGS)
+	$(GCC)  -O0 $(OBJ) -o $(EXE) $(GCCFLAGS)
 
 $(OBJ): $(SRC)
 	$(NASM) $(NASMFLAGS) -o $(OBJ) $(SRC)
