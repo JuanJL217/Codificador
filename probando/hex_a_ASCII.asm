@@ -19,6 +19,7 @@ section .bss
 section .text
 
 main:
+
     ; Convertir los valores hexadecimales a binarios
     mov     rdi, valorHexadecimal  ; Apuntamos al primer byte hexadecimal
     mov     rsi, cadenaBinario    ; Apuntamos a la cadena donde guardaremos el binario
