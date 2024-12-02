@@ -25,7 +25,7 @@ section	.bss
 section	.text
 
 main:
-    mov     rdi, secuenciaBinariaA   ; Apuntamos al primer número hexadecimal
+    mov     rdi, secuenciaBinariaA  ; Apuntamos a la cadena de hexadecimales, en este caso, al primer elemento 0xC$
     mov     rsi, cadenaBinario      ; Apuntamos a la cadena donde guardaremos el binario
     mov     rbx, 0                  ; Inicializamos el contador de bytes procesados (empezamos con 0)
 
@@ -62,24 +62,25 @@ binario_terminado:
     mov     byte [rsi], 0           ; Terminar la cadena con un terminador nulo
 
 inicializar_informacion_para_convertir_bits:
-    mov     rsi, secuenciaImprimibleA
-    mov     rdi, 0
-    mov     rdx, 0
-    mov     rax, 0          
-    mov     rcx, 0 
+    mov     rsi, secuenciaImprimibleA     ; Apunta a la cadena donde coloraremos la codificación
+    mov     rdx, 0                        ; Inicialzamos el iterador de la cadena de binarios
+    mov     rax, 0                        ; Inicializamos en 0, ya que en rax guardaremos el valor decimal de los 6 bits
+                                          ; porque a memdida que vayamos, iremos multiplicando por 2 (binario a decimal)
+    mov     rcx, 0                        ; Inicializamos el contador de bits
 
 procesar_binario:
-    cmp     rcx, 6                        ; Comprobar si hemos procesado todos los bits
-    je      convertir_a_base_64       ; Si hemos procesado todos los bits, saltamos
-    mov     bl, byte [cadenaBinario + rdx]  ; Cargar el carácter actual
-    cmp     bl, '0'                   ; Verificar si es '1'
-    je      es_cero                  ; Si no es '1', entonces es '0'
-    or      rax, 1                   ; Poner el bit en el lugar adecuado
+    cmp     rcx, 6                        ; Comparamos si se contó 6 bits
+    je      convertir_a_base_64           ; Si es verdad, entonces bifurcamos a convertir a base 64, caso contrario
+                                          ; seguirá de largo
+    mov     bl, byte [cadenaBinario + rdx]  ; Cargar el carácter actual ('0' o '1')
+    cmp     bl, '0'                       ; El codigo Ascii de '0' es 48, entonces comparamos
+    je      es_cero                       ; Si resula ser que bl almacena '0' (numero 48), bifucar
+    inc     rax                        ; Poner el bit en el lugar adecuado
 
 es_cero:
     cmp     rcx, 5
     je      avanzar_bit
-    shl     rax, 1                   ; Desplazar a la izquierda para preparar el siguiente bit
+    imul    rax, 2                   ; Desplazar a la izquierda para preparar el siguiente bit
 
 avanzar_bit:
     inc     rcx                      ; Avanzar al siguiente bit
@@ -97,11 +98,12 @@ siguiente_6_bits:
 
 convertir_a_base_64:
     mov     cl, byte [TablaConversion + rax]
-    mov     byte [rsi + rdi], cl
-    inc     rdi
+    mov     byte [rsi], cl
+    inc     rsi
     jmp     ver_final
 
 fin_proceso:
-    mov     byte[rsi+rdi], 0
+    mov     byte [rsi], 0
     mPrintf resultadoCodificado, secuenciaImprimibleA
-    ret
+    mov     rax,0
+    ret 
